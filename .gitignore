@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+
+# Environment
+.env
+venv/
+ml_api_env/
+
+# Database
+*.db
+
+# Vector Database
+vector_store/
+
+# Cache
+.cache/
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
