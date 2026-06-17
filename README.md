@@ -208,7 +208,7 @@ Used to convert document chunks into vector representations.
 ## Clone Repository
 
 ```bash
-git clone <your github link>
+git clone https://github.com/Hrishx/RAG_AWS_Assistant
 
 cd RAG_AWS_Assistant
 ```
