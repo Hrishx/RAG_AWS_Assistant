@@ -1,10 +1,54 @@
 # AWS Agreement RAG Assistant 🤖
 
-A Retrieval-Augmented Generation (RAG) based Question Answering system built on the AWS Customer Agreement document.
+A Retrieval-Augmented Generation (RAG) based AI Question Answering Assistant built using the AWS Customer Agreement document.
 
-The system allows users to ask questions about the AWS Agreement PDF and returns AI-generated answers with supporting source snippets.
+The system allows users to ask natural language questions about the AWS Agreement PDF and generates context-aware answers using a local Large Language Model (LLM).
 
-It also tracks user queries using SQL logging and provides an analytics dashboard.
+It retrieves relevant document sections using semantic search and provides answers with source references.
+
+The application also tracks user queries using SQLite logging and provides an analytics dashboard.
+
+---
+
+# 🎥 Demo Video
+
+A short project demonstration video is included.
+
+Demo covers:
+
+- FastAPI backend execution
+- Streamlit user interface
+- Document-based question answering
+- Source reference display
+- Query analytics dashboard
+
+Demo File:
+
+```
+AWS RAG Assistant Demo.mp4
+```
+
+---
+
+# 📄 Technical Report
+
+Complete project documentation report is included.
+
+The report contains:
+
+- Problem statement
+- Architecture explanation
+- Technology stack
+- RAG pipeline workflow
+- Implementation details
+- Testing results
+- Future improvements
+
+Report File:
+
+```
+AWS_RAG_Assistant_Technical_Report.pdf
+```
 
 ---
 
@@ -14,47 +58,58 @@ It also tracks user queries using SQL logging and provides an analytics dashboar
 AWS Customer Agreement PDF
             |
             v
-      PDF Loader
+      PyPDFLoader
             |
             v
-     Text Chunking
+RecursiveCharacterTextSplitter
             |
             v
-   Embedding Generation
+       Text Chunks
             |
             v
-      FAISS Vector DB
+Ollama Embeddings (nomic-embed-text)
+            |
+            v
+      FAISS Vector Database
             |
             v
         Retriever
             |
             v
- Retrieved Context + User Query
+ Retrieved Context + User Question
             |
             v
-        LLM (Ollama)
+   LCEL RAG Chain + Prompt
             |
             v
-       FastAPI Backend
+ Qwen2.5 LLM (Ollama)
             |
             v
- Streamlit Frontend + Analytics
+   Generated Answer + Sources
+            |
+            v
+ FastAPI Backend + Streamlit UI
 ```
 
 ---
 
 # Tech Stack
 
-### Backend
+## Backend
+
 - Python
 - FastAPI
 - LangChain
-- FAISS Vector Store
-- Ollama LLM
-- SQLite Database
+- LCEL (LangChain Expression Language)
+- FAISS Vector Database
+- Ollama Embeddings
+- Qwen2.5 LLM
+- SQLite
+- SQLAlchemy
 - Pydantic
 
-### Frontend
+## Frontend
+
 - Streamlit
 - Requests
 
@@ -65,35 +120,60 @@ AWS Customer Agreement PDF
 ## RAG Pipeline
 
 - Loads AWS Customer Agreement PDF
-- Splits document into meaningful chunks
-- Converts chunks into embeddings
-- Stores embeddings in FAISS
-- Retrieves relevant chunks based on user questions
-- Generates answers using LLM
-- Returns source references
+- Extracts document content
+- Splits text into optimized chunks
+- Generates vector embeddings
+- Stores embeddings using FAISS
+- Performs semantic similarity search
+- Retrieves relevant document context
+- Generates LLM answers using retrieved context
+- Provides source references with page information
 
 ---
 
-## SQL Logging & Analytics
+# Hallucination Control
 
-Every question asked by the user is logged.
+The assistant is restricted to AWS Agreement content.
 
-Stored details:
+Example:
+
+Question:
+
+```
+Who won IPL?
+```
+
+Response:
+
+```
+Sorry, I cannot answer from provided document
+```
+
+This prevents unrelated LLM-generated responses.
+
+---
+
+# SQL Logging & Analytics
+
+Every user interaction is stored.
+
+Logged details:
 
 - User question
+- Generated answer
 - Response latency
-- Success / Failure status
+- Success / failure status
 
 Analytics dashboard provides:
 
 - Total number of questions
-- Average response latency
-- Failed / out-of-context questions
+- Average response time
+- Failed/out-of-context questions
+- Frequently asked questions
 
 ---
 
 # API Endpoints
-
 
 ## Ingest Document
 
@@ -103,8 +183,9 @@ POST
 /ingest
 ```
 
-Processes PDF and creates vector embeddings.
+Purpose:
 
+Processes PDF, creates embeddings and stores FAISS vector index.
 
 ---
 
@@ -116,7 +197,7 @@ POST
 /ask
 ```
 
-Example request:
+Example Request:
 
 ```json
 {
@@ -124,11 +205,11 @@ Example request:
 }
 ```
 
-Response:
+Example Response:
 
 ```json
 {
- "answer":"AWS responsibilities include...",
+ "answer":"According to AWS Customer Agreement...",
  "sources":[]
 }
 ```
@@ -145,10 +226,10 @@ GET
 
 Returns:
 
-- total queries
-- average latency
-- failed questions
-
+- Total queries
+- Average latency
+- Failed questions
+- Common questions
 
 ---
 
@@ -157,53 +238,64 @@ Returns:
 
 ## Chunking Strategy
 
-Chunk Size: 1000 characters
+Configuration:
 
-Chunk Overlap: 200 characters
+```
+chunk_size = 1000
 
+chunk_overlap = 200
+```
 
 Reason:
 
-Large enough to preserve context from legal documents while overlap prevents information loss between chunks.
-
+Large enough to maintain legal document context while overlap prevents information loss between chunks.
 
 ---
 
-## Retriever
+# Retriever Strategy
 
-Top-K: 3
+Configuration:
+
+```
+Top K = 3
+```
 
 Reason:
 
-Retrieving top 3 chunks provides enough relevant context without increasing unnecessary LLM tokens.
-
+Retrieves the three most relevant chunks to provide enough context without increasing unnecessary tokens.
 
 ---
 
-## Model Choice
+# Model Selection
 
-LLM:
+## Embedding Model
 
-Ollama local model
+```
+nomic-embed-text
+```
+
+Purpose:
+
+Converts text chunks and user queries into numerical vector representations for semantic search.
+
+---
+
+## LLM
+
+```
+Qwen2.5:3B-Instruct using Ollama
+```
 
 Reason:
 
-- Free inference
-- Runs locally
+- Local inference
 - No external API dependency
-
-
-Embedding Model:
-
-Sentence Transformer / Ollama Embeddings
-
-Used to convert document chunks into vector representations.
-
+- Privacy friendly
+- Cost efficient
 
 ---
 
 # Setup Instructions
-
 
 ## Clone Repository
 
@@ -213,11 +305,9 @@ git clone https://github.com/Hrishx/RAG_AWS_Assistant
 cd RAG_AWS_Assistant
 ```
 
-
 ---
 
-## Create Environment
-
+# Create Environment
 
 ```bash
 conda create -n rag_env python=3.10
@@ -225,16 +315,13 @@ conda create -n rag_env python=3.10
 conda activate rag_env
 ```
 
-
 ---
 
-## Install Dependencies
-
+# Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
-
 
 ---
 
@@ -243,23 +330,27 @@ pip install -r requirements.txt
 
 ## Start Backend
 
+Run from project root:
 
 ```bash
-uvicorn backend.app:app --reload
+uvicorn backend.main:app --reload
 ```
 
-
-Backend runs at:
+Backend URL:
 
 ```
 http://127.0.0.1:8000
 ```
 
+API Documentation:
+
+```
+http://127.0.0.1:8000/docs
+```
 
 ---
 
 ## Start Frontend
-
 
 Open another terminal:
 
@@ -267,45 +358,40 @@ Open another terminal:
 streamlit run frontend/app.py
 ```
 
-
-Frontend runs at:
+Frontend URL:
 
 ```
 http://localhost:8501
 ```
 
-
----
-
-# Demo Flow
-
-1. Start FastAPI backend
-2. Start Streamlit frontend
-3. Ask AWS Agreement related questions
-4. View generated answer with source
-5. Open analytics dashboard
-
-
 ---
 
 # Project Structure
 
-
 ```
-RAG_AWS_Assistant
+RAG_AWS_Assistant/
 
 │
-├── backend
-│   ├── app.py
+├── backend/
+│   ├── main.py
 │   ├── rag.py
 │   ├── database.py
-│   ├── schema.py
+│   ├── schemas.py
+│   └── config.py
 │
-├── frontend
+├── frontend/
 │   └── app.py
 │
-├── data
+├── data/
 │   └── AWS Customer Agreement.pdf
+│
+├── vector_store/
+│   ├── index.faiss
+│   └── index.pkl
+│
+├── AWS_RAG_Assistant_Demo.mp4
+│
+├── AWS_RAG_Assistant_Technical_Report.pdf
 │
 ├── requirements.txt
 │
@@ -314,8 +400,19 @@ RAG_AWS_Assistant
 
 ---
 
+# Future Improvements
+
+- Add authentication
+- Deploy using Docker
+- Add cloud vector database support
+- Support multiple document uploads
+- Add conversation memory
+- Improve retrieval using reranking
+
+---
+
 # Author
 
-Harish C
+**Harish C**
 
 AI / Generative AI Developer
