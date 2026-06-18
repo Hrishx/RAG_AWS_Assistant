@@ -52,8 +52,7 @@ def get_analytics():
     for log in logs:
         
         common[log.question]=(common.get(
-            log.question,0
-        )+1)
+            log.question,0)+1)
     
     db.close()
     
